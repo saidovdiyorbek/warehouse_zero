@@ -52,3 +52,8 @@ class WarehouseAlreadyExistsException() : WarehouseAppException(){
 class WarehouseNotFoundException() : WarehouseAppException(){
     override fun errorType() = ErrorCode.WAREHOUSE_NOT_FOUND
 }
+
+class EmployeeNotFoundException() : WarehouseAppException(){
+    override fun errorType() = ErrorCode.EMPLOYEE_NOT_FOUND
+
+}

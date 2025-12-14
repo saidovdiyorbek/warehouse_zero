@@ -3,6 +3,8 @@ package dasturlash.warehouse_zero
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
@@ -33,7 +35,7 @@ class BaseEntity(
     @CreatedBy var createdBy: String? = null,
     @LastModifiedBy var lastModifiedBy: String? = null,
     @Column(nullable = false) @ColumnDefault(value = "false") var deleted: Boolean = false,
-    @Column(nullable = false) var status: Status = Status.ACTIVE,
+    @Column(nullable = false) @Enumerated(EnumType.STRING) var status: Status = Status.ACTIVE,
 )
 //Warehouse
 @Entity
@@ -89,6 +91,7 @@ class Employee(
     @JoinColumn(name = "warehouse_id", nullable = false)
     var warehouse: Warehouse,
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false) var role: Role,
 ) : BaseEntity()
 
@@ -100,6 +103,10 @@ class Attach(
     @Column(nullable = false) var size: Long,
     @Column(nullable = false) var type: String,
     @Column(nullable = false) var path: String,
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    var product: Product
 ) : BaseEntity()
 
 //Product
@@ -111,10 +118,6 @@ class Product(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     var category: Category,
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "attach_id")
-    var attach: Attach,
 
     @Column(nullable = false, unique = true) var productNumber: String,
 

@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: "jdbc:postgresql://localhost:5432/zero_warehouse"
+    username: zero
+    password: finite
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      hibernate:
+        temp:
+          use_jdbc_metadata_defaults: false
+        jdbc:
+          lob:
+            non_contextual_creation: true
+    hibernate:
+      ddl-auto: update
+      naming:
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyComponentPathImpl
+        sql:
+          init:
+            mode: always

@@ -24,14 +24,14 @@ data class UserDetailsResponse(
     val firstName: String,
     val lastName: String?,
     val role: Role,
-    val password: String,
+    val mypassword: String,
 ) : UserDetails{
     override fun getAuthorities(): Collection<GrantedAuthority?> {
         return listOf(SimpleGrantedAuthority(role.name))
     }
 
     override fun getPassword(): String {
-        return password
+        return mypassword
     }
 
     override fun getUsername(): String {

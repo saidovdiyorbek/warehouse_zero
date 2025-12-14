@@ -49,5 +49,5 @@ interface WarehouseRepository : BaseRepository<Warehouse>{
 }
 
 interface EmployeeRepository : BaseRepository<Employee>{
-    fun findByPhoneNumberAndDeletedFalse(phoneNumber: String): Employee
+    fun findByPhoneNumberAndDeletedFalse(phoneNumber: String): Employee?
 }

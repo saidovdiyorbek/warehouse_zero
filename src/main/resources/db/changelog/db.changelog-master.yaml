@@ -1,0 +1,5 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/changes/v001-initial-schema.yml
+  - include:
+      file: db/changelog/changes/v002-initial-data.yml

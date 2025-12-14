@@ -1,0 +1,80 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: system
+      changes:
+        - createTable:
+            tableName: employee
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: character varying
+                  constraints:
+                    nullable: true
+              - column:
+                  name: created_date
+                  type: java.sql.types.timestamp_with_timezone
+                  constraints:
+                    nullable: true
+              - column:
+                  name: deleted
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_modified_by
+                  type: character varying
+                  constraints:
+                    nullable: true
+              - column:
+                  name: last_modified_date
+                  type: java.sql.types.timestamp_with_timezone
+                  constraints:
+                    nullable: true
+              - column:
+                  name: status
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: first_name
+                  type: character varying
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_name
+                  type: character varying
+                  constraints:
+                    nullable: true
+              - column:
+                  name: password
+                  type: character varying
+                  constraints:
+                    nullable: false
+              - column:
+                  name: phone_number
+                  type: character varying
+                  constraints:
+                    nullable: false
+              - column:
+                  name: role
+                  type: character varying(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: unique_number
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: warehouse_id
+                  type: bigint
+                  constraints:
+                    nullable: true

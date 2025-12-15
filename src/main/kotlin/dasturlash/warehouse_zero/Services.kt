@@ -38,6 +38,9 @@ class WarehouseServiceImpl(
 
     override fun update(id: Long, update: WarehouseUpdateRequest) {
         repository.findByIdAndDeletedFalse(id)?.let { warehouse ->
+            repository.existsWarehouseByName(update.name)?.let {
+                throw WarehouseAlreadyExistsException()
+            }
             warehouse.name = update.name
             repository.save(warehouse)
             return
@@ -95,3 +98,62 @@ class EmployeeServiceImpl(
     }
 }
 //Employee Service
+
+//Category Service
+interface CategoryService {
+    fun create(create: CreateCategoryDto)
+    fun getOne(id: Long): CategoryResponse
+    fun update(id: Long, update: CategoryUpdateRequest)
+    fun delete(id: Long)
+}
+
+@Service
+class CategoryServiceImpl(
+    private val repository: CategoryRepository,
+) : CategoryService {
+    override fun create(create: CreateCategoryDto) {
+        repository.existsCategoryByNameAndDeletedFalse(create.name).takeIf { it == true}?.let {
+            throw CategoryAlreadyExistsException()
+        }
+        val category = create.parentId?.let {
+            repository.findByIdAndDeletedFalse(create.parentId)
+            throw CategoryNotFoundException()
+        }
+
+        repository.save(Category(
+            name = create.name,
+            parent = category,
+        ))
+    }
+
+    override fun getOne(id: Long): CategoryResponse {
+        val category = repository.findByIdAndDeletedFalse(id)?.let { category ->
+            return CategoryResponse(
+                category.id!!,
+                category.name,
+                category.createdBy,
+                category.parent?.id
+            )
+        }
+        throw WarehouseNotFoundException()
+    }
+
+    override fun update(id: Long, update: CategoryUpdateRequest) {
+        repository.findByIdAndDeletedFalse(id)?.let { category ->
+                repository.existsCategoryByNameAndDeletedFalse(category.name).takeIf { it == true}?.let {
+                    category.name = update.name.toString()
+                    if (update.parentId != category.id) category.parent = update.parentId as Category?
+                    repository.save(category)
+                    return
+            }
+            throw CategoryAlreadyExistsException()
+        }
+        throw CategoryNotFoundException()
+    }
+
+    override fun delete(id: Long) {
+        repository.trash(id) ?: throw CategoryNotFoundException()
+    }
+
+}
+//Category Service

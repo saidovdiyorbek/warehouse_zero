@@ -85,3 +85,11 @@ class EmployeeNotFoundException() : WarehouseAppException() {
 class InvalidPasswordException() : WarehouseAppException(){
     override fun errorType() = ErrorCode.INVALID_PASSWORD
 }
+
+class CategoryAlreadyExistsException() : WarehouseAppException(){
+    override fun errorType() = ErrorCode.CATEGORY_ALREADY_EXISTS
+}
+
+class CategoryNotFoundException() : WarehouseAppException(){
+    override fun errorType() = ErrorCode.CATEGORY_NOT_FOUND
+}

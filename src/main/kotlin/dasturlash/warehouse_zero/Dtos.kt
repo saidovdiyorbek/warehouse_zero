@@ -61,6 +61,26 @@ data class WarehouseResponse(
 
 data class WarehouseUpdateRequest(
     @field:NotBlank
-    @field:Size(min = 4, max = 100, message = "Warehouse name size between 4 and 100 characters.")
+    @field:Size(min = 4, max = 100, message = "warehouse.update.name.min.max")
     val name: String
+)
+
+data class CreateCategoryDto(
+    @field:NotBlank(message = "category.name.required")
+    @field:Size(min = 4, max = 100, message = "category.name.min.max")
+    val name: String,
+    val parentId: Long?
+)
+
+data class CategoryResponse(
+    val id: Long,
+    val name: String,
+    val createdBy: String?,
+    val parentId: Long?,
+)
+
+data class CategoryUpdateRequest(
+    @field:Size(min = 4, max = 100, message = "category.name.min.max")
+    val name: String?,
+    val parentId: Long?,
 )

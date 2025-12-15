@@ -9,12 +9,12 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
 
 @EnableJpaRepositories(repositoryBaseClass = BaseRepositoryImpl::class)
-@SecurityScheme(
+/*@SecurityScheme(
     name = "Bearer Authentication",
     type = SecuritySchemeType.HTTP,
     bearerFormat = "JWT",
     scheme = "bearer"
-)
+)*/
 @SpringBootApplication
 @EnableJpaAuditing
 class WarehouseZeroApplication

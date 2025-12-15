@@ -56,3 +56,8 @@ interface WarehouseRepository : BaseRepository<Warehouse>{
 interface EmployeeRepository : BaseRepository<Employee>{
     fun findByPhoneNumberAndDeletedFalse(phoneNumber: String): Employee?
 }
+
+interface CategoryRepository : BaseRepository<Category>{
+
+    fun existsCategoryByNameAndDeletedFalse(name: String): Boolean?
+}

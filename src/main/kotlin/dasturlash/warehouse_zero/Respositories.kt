@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
+import org.springframework.data.jpa.repository.Query
 import org.springframework.data.jpa.repository.support.JpaEntityInformation
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository
 import org.springframework.data.repository.NoRepositoryBean
@@ -45,7 +46,11 @@ class BaseRepositoryImpl<T : BaseEntity>(
 
 @Repository
 interface WarehouseRepository : BaseRepository<Warehouse>{
-    fun existsWarehouseByName(name: String): Boolean
+    @Query("""
+        select w from Warehouse w 
+        where w.name = ?1 and w.deleted = false 
+    """)
+    fun existsWarehouseByName(name: String): Warehouse?
 }
 
 interface EmployeeRepository : BaseRepository<Employee>{

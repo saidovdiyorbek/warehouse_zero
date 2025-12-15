@@ -4,11 +4,14 @@ import org.springframework.context.MessageSource
 import org.springframework.context.NoSuchMessageException
 import org.springframework.context.i18n.LocaleContextHolder
 import org.springframework.context.support.ResourceBundleMessageSource
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.ErrorResponse
+import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import java.util.Locale
+import org.springframework.validation.FieldError
 
 @RestControllerAdvice
 class ExceptionHandler(
@@ -26,6 +29,27 @@ class ExceptionHandler(
         return ResponseEntity
             .badRequest()
             .body(BaseMessage(ex.errorType().code, message))
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException::class)
+    fun handleValidationException(ex: MethodArgumentNotValidException): ResponseEntity<BaseMessage> {
+        val filedError: FieldError = ex.bindingResult.allErrors.first() as FieldError
+
+        val local = LocaleContextHolder.getLocale()
+        val errorMessage = filedError.defaultMessage ?: "Validation error"
+
+        val message = try {
+            messageSource.getMessage(errorMessage, null, local)
+        }catch (e: NoSuchMessageException) {
+            errorMessage.replace("_", " ").lowercase()
+        }
+
+        return ResponseEntity
+            .status(HttpStatus.BAD_REQUEST)
+            .body(BaseMessage(
+                code = 400,
+                message = "${filedError.field}: $message"
+            ))
     }
 }
 
@@ -53,7 +77,11 @@ class WarehouseNotFoundException() : WarehouseAppException(){
     override fun errorType() = ErrorCode.WAREHOUSE_NOT_FOUND
 }
 
-class EmployeeNotFoundException() : WarehouseAppException(){
+class EmployeeNotFoundException() : WarehouseAppException() {
     override fun errorType() = ErrorCode.EMPLOYEE_NOT_FOUND
 
+}
+
+class InvalidPasswordException() : WarehouseAppException(){
+    override fun errorType() = ErrorCode.INVALID_PASSWORD
 }

@@ -18,13 +18,14 @@ class ConfigService(
 ) {
 
     @Bean
-    fun securityWebFilterChain(http: HttpSecurity): SecurityFilterChain {
-        http
+    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+            http
             .csrf { it.disable() }
             .cors { it.disable() }
             .authorizeHttpRequests {
                 it
-                    .requestMatchers("/auth/**").permitAll()
+                    .requestMatchers("/api/auth/**").permitAll()
+                    .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                     .anyRequest().authenticated()
             }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }

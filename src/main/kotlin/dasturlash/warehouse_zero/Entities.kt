@@ -103,6 +103,7 @@ class Attach(
     @Column(nullable = false) var size: Long,
     @Column(nullable = false) var type: String?,
     @Column(nullable = false) var path: String,
+    @Column(nullable = false) var fullPath: String,
     @Column(nullable = false, unique = true) var hash: String,
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)

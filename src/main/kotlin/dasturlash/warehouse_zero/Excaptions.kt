@@ -114,3 +114,7 @@ class ProductAlreadyExistsException() : WarehouseAppException(){
 class ProductNotInStockException() : WarehouseAppException(){
     override fun errorType() = ErrorCode.PRODUCT_NOT_IN_STOCK
 }
+
+class AttachNotFoundException() : WarehouseAppException(){
+    override fun errorType() = ErrorCode.ATTACH_NOT_FOUND
+}

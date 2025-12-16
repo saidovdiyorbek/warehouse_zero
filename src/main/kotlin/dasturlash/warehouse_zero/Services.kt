@@ -4,7 +4,6 @@ import dasturlash.warehouse_zero.security.JwtService
 import io.jsonwebtoken.io.IOException
 import jakarta.transaction.Transactional
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.context.properties.source.ConfigurationPropertySources.attach
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -14,8 +13,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.Calendar
-import java.util.Objects.hash
-import java.util.Random
 import kotlin.io.path.Path
 import kotlin.toString
 
@@ -176,11 +173,15 @@ interface AttachService {
     fun upload(productId: Long, file: MultipartFile): AttachUrl
     fun generateDataBaseFolder(): String
     fun getExtension(fileName: String?): String
-    fun createAttachEntity(file: MultipartFile, hash: String, extension: String, pathFolder: String, product: Product): Attach
+    fun createAttachEntity(file: MultipartFile, hash: String, extension: String, pathFolder: String, product: Product, fullPath: String): Attach
     fun generateHash(): String
     fun openUrl(hash: String): String
     fun isExist(hash: String): Boolean
     fun saveAttach(file: MultipartFile, pathFolder: String, hash: String, extension: String): String
+    fun getAttachByHash(photoHash: String): AttachResponse
+    fun delete(photoHash: String)
+    fun deleteFileFromFolder(folder: String, fileName: String): Boolean
+    fun getProductAttaches(productId: Long): List<AttachResponse>
 }
 
 @Service
@@ -202,14 +203,12 @@ class AttachServiceImpl(
         val hash: String = generateHash()
         val fullFilePath = saveAttach(file, pathFolder, hash, extension)
 
-        val attach = createAttachEntity(file, hash, extension, pathFolder, findProduct!!)
+        val attach = createAttachEntity(file, hash, extension, pathFolder, findProduct!!, fullFilePath)
 
         return AttachUrl(attach.hash, openUrl(hash) )
     }
 
-
-
-     override fun generateDataBaseFolder(): String {
+    override fun generateDataBaseFolder(): String {
         val cal: Calendar = Calendar.getInstance()
         val folder: String = "${cal.get(Calendar.YEAR)}/" +
                 "${cal.get(Calendar.MONTH) + 1}/" +
@@ -217,7 +216,7 @@ class AttachServiceImpl(
         return folder
     }
 
-     override fun getExtension(fileName: String?): String {
+    override fun getExtension(fileName: String?): String {
         val lastIndex = fileName?.lastIndexOf(".")
         return fileName!!.substring(lastIndex!!.plus(1))
     }
@@ -227,15 +226,17 @@ class AttachServiceImpl(
         hash: String,
         extension: String,
         pathFolder: String,
-        product: Product
+        product: Product,
+        fullPath: String
     ): Attach {
         val attach = repository.save(Attach(
             originName = file.originalFilename,
             size = file.size,
             type = file.contentType,
-            path = pathFolder,
+            path = "$folderName/$pathFolder",
             hash = hash,
             product = product,
+            fullPath = fullPath,
         ))
 
         return attach
@@ -271,8 +272,11 @@ class AttachServiceImpl(
             if (!Files.exists(path)){
                 Files.createDirectories(path)
             }
-
-            val fullFileName = "$hash.$extension"
+            var fullFileName: String
+            if (file.originalFilename.isNullOrBlank()){
+                fullFileName = "$hash.$extension"
+            }
+            fullFileName = file.originalFilename!!
             val fullPath: Path = Paths.get("$folderName/$pathFolder/$fullFileName")
             Files.createDirectories(fullPath.parent)
             Files.write(fullPath, file.bytes)
@@ -282,6 +286,60 @@ class AttachServiceImpl(
         }catch (e: IOException){
             throw RuntimeException("Failed to create file", e)
         }
+    }
+
+    override fun getAttachByHash(photoHash: String): AttachResponse {
+        repository.findAttachByHashAndDeletedFalse(photoHash)?.let { attach ->
+            return AttachResponse(
+                id = attach.id!!,
+                originName = attach.originName,
+                size = attach.size,
+                type = attach.type,
+                path = attach.path,
+                fullPath = attach.fullPath,
+                hash = attach.hash,
+                productId = attach.product.id!!
+            )
+        }
+        throw AttachNotFoundException()
+    }
+
+    override fun delete(photoHash: String) {
+        repository.findAttachByHashAndDeletedFalse(photoHash)?.let { attach ->
+            repository.trash(attach.id!!)
+            deleteFileFromFolder(attach.path, attach.originName!!)
+        }
+    }
+
+    override fun deleteFileFromFolder(folder: String, fileName: String): Boolean{
+        return try {
+            val filePath = Paths.get(folder, fileName)
+
+            Files.deleteIfExists(filePath)
+        }catch (e: Exception){
+            println("Problem delete file ${e.message}")
+            false
+        }
+    }
+
+    override fun getProductAttaches(productId: Long): List<AttachResponse> {
+        val response: MutableList<AttachResponse> = mutableListOf()
+        productRepository.findByIdAndDeletedFalse(productId)?.let { product ->
+            repository.findAllByProductIdAndDeletedFalse(productId).map { attach ->
+                response.add(AttachResponse(
+                    id = attach.id!!,
+                    originName = attach.originName,
+                    size = attach.size,
+                    type = attach.type,
+                    path = attach.path,
+                    fullPath = attach.fullPath,
+                    hash = attach.hash,
+                    productId = attach.product.id!!
+                ))
+            }
+            return response
+        }
+        throw ProductNotFoundException()
     }
 
 }

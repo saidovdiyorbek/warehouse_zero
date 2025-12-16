@@ -99,11 +99,11 @@ class Employee(
 @Entity
 @Table(name = "attach")
 class Attach(
-    @Column(nullable = false, name = "origin_name") var originName: String,
+    @Column(nullable = false, name = "origin_name") var originName: String?,
     @Column(nullable = false) var size: Long,
-    @Column(nullable = false) var type: String,
+    @Column(nullable = false) var type: String?,
     @Column(nullable = false) var path: String,
-
+    @Column(nullable = false, unique = true) var hash: String,
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
     var product: Product

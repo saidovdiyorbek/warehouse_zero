@@ -16,6 +16,7 @@ import java.nio.file.Paths
 import java.util.Calendar
 import java.util.Objects.hash
 import kotlin.io.path.Path
+import kotlin.toString
 
 //Warehouse Service
 interface WarehouseService {
@@ -152,12 +153,12 @@ class CategoryServiceImpl(
     override fun update(id: Long, update: CategoryUpdateRequest) {
         repository.findByIdAndDeletedFalse(id)?.let { category ->
                 repository.existsCategoryByNameAndDeletedFalse(category.name).takeIf { it == true}?.let {
-                    category.name = update.name.toString()
-                    if (update.parentId != category.id) category.parent = update.parentId as Category?
-                    repository.save(category)
-                    return
+                    throw CategoryAlreadyExistsException()
             }
-            throw CategoryAlreadyExistsException()
+            category.name = update.name.toString()
+            if (update.parentId != category.id) category.parent = update.parentId as Category?
+            repository.save(category)
+            return
         }
         throw CategoryNotFoundException()
     }
@@ -284,3 +285,63 @@ class AttachServiceImpl(
 
 }
 //Attach Service
+
+//Product Service
+interface ProductService{}
+
+@Service
+class ProductServiceImpl() : ProductService{}
+//Product Service
+
+//Measurement Service
+interface MeasurementService{
+    fun create(create: MeasurementCreateDto)
+    fun getOne(id: Long): MeasurementResponse
+    fun update(id: Long, update: MeasurementUpdateRequest)
+    fun delete(id: Long)
+}
+
+@Service
+class MeasurementServiceImpl(
+    private val repository: MeasurementRepository,
+) : MeasurementService{
+    override fun create(create: MeasurementCreateDto) {
+        repository.existsMeasurementByNameAndDeletedFalse(create.name).takeIf { it == true }?.let {
+            throw MeasurementAlreadyExistsException()
+        }
+
+        repository.save(Measurement(
+            name = create.name,
+        ))
+    }
+
+    override fun getOne(id: Long): MeasurementResponse {
+        repository.findByIdAndDeletedFalse(id)?.let { measurement ->
+            return MeasurementResponse(
+                measurement.id!!,
+                measurement.name,
+                measurement.createdBy
+            )
+        }
+        throw MeasurementNotFoundException()
+    }
+
+    override fun update(id: Long, update: MeasurementUpdateRequest) {
+        repository.findByIdAndDeletedFalse(id)?.let { measurement ->
+            repository.existsMeasurementByNameAndDeletedFalse(update.name).takeIf { it == true}?.let {
+                throw MeasurementAlreadyExistsException()
+
+            }
+            measurement.name = update.name.toString()
+            repository.save(measurement)
+            return
+
+        }
+        throw MeasurementNotFoundException()
+    }
+
+    override fun delete(id: Long) {
+        repository.trash(id) ?: throw MeasurementNotFoundException()
+    }
+}
+//Measurement Service

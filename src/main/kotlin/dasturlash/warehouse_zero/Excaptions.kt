@@ -93,3 +93,7 @@ class CategoryAlreadyExistsException() : WarehouseAppException(){
 class CategoryNotFoundException() : WarehouseAppException(){
     override fun errorType() = ErrorCode.CATEGORY_NOT_FOUND
 }
+
+class ProductNotFoundException() : WarehouseAppException(){
+    override fun errorType() = ErrorCode.PRODUCT_NOT_FOUND
+}

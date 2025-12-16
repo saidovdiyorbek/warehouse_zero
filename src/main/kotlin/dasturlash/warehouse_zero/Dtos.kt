@@ -84,3 +84,8 @@ data class CategoryUpdateRequest(
     val name: String?,
     val parentId: Long?,
 )
+
+data class AttachUrl(
+    val id: Long,
+    val url: String,
+)

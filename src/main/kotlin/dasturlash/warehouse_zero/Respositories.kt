@@ -67,9 +67,26 @@ interface AttachRepository : BaseRepository<Attach>{
 }
 @Repository
 interface ProductRepository : BaseRepository<Product>{
+    fun existsProductByNameAndDeletedFalse(name: String): Boolean
+    /*@Query("""
+        select p from Product p
+        where p.name = ?1 and p.id != ?2 and p.deleted = false
+    """)*/
+    fun existsProductByNameAndDeletedFalseAndIdNot(name: String, id: Long): Boolean
+    fun existsProductByProductNumber(productNumber: Int): Boolean
 
 }
 
 interface MeasurementRepository : BaseRepository<Measurement>{
     fun existsMeasurementByNameAndDeletedFalse(measurementName: String): Boolean
+}
+
+interface StockInItemRepository : BaseRepository<StockInItem>{
+    @Query("""
+        select st from StockInItem st
+        where st.product.id = ?1
+        order by st.createdDate desc
+        limit 1
+    """)
+    fun findStockInItemByProductId(productId: Long): StockInItem?
 }

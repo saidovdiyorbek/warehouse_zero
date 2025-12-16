@@ -15,6 +15,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.Calendar
 import java.util.Objects.hash
+import java.util.Random
 import kotlin.io.path.Path
 import kotlin.toString
 
@@ -203,7 +204,7 @@ class AttachServiceImpl(
 
         val attach = createAttachEntity(file, hash, extension, pathFolder, findProduct!!)
 
-        return AttachUrl(attach.id!!, openUrl(hash) )
+        return AttachUrl(attach.hash, openUrl(hash) )
     }
 
 
@@ -228,14 +229,14 @@ class AttachServiceImpl(
         pathFolder: String,
         product: Product
     ): Attach {
-        val attach = Attach(
+        val attach = repository.save(Attach(
             originName = file.originalFilename,
             size = file.size,
             type = file.contentType,
             path = pathFolder,
             hash = hash,
             product = product,
-        )
+        ))
 
         return attach
     }
@@ -287,10 +288,100 @@ class AttachServiceImpl(
 //Attach Service
 
 //Product Service
-interface ProductService{}
+interface ProductService{
+    fun create(create: ProductCreateDto)
+    fun getOne(id: Long): ProductResponse
+    fun update(id: Long, update: ProductUpdateRequest)
+    fun delete(id: Long)
+    fun generateUniqueCode(): Int
+}
 
 @Service
-class ProductServiceImpl() : ProductService{}
+class ProductServiceImpl(
+    private val categoryRepository: CategoryRepository,
+    private val measurementRepository: MeasurementRepository,
+    private val repository: ProductRepository,
+    private val stockInItemRepository: StockInItemRepository
+) : ProductService{
+    override fun create(create: ProductCreateDto) {
+        val category =
+            categoryRepository.findByIdAndDeletedFalse(create.categoryId) ?: throw CategoryNotFoundException()
+        val measurement =
+            measurementRepository.findByIdAndDeletedFalse(create.measurementId) ?: throw MeasurementNotFoundException()
+
+            val uniqueNumber = generateUniqueCode()
+
+            repository.existsProductByNameAndDeletedFalse(create.name).takeIf { it }
+                ?.let {
+                    throw ProductAlreadyExistsException()
+                }
+            repository.save(
+                Product(
+                    name = create.name,
+                    category = category,
+                    measurement = measurement,
+                    productNumber = uniqueNumber,
+                )
+            )
+    }
+
+    override fun getOne(id: Long): ProductResponse {
+        repository.findByIdAndDeletedFalse(id)?.let { findProduct ->
+            val stockInItem = stockInItemRepository.findStockInItemByProductId(findProduct.id!!)
+            return ProductResponse(
+                id = findProduct.id!!,
+                name = findProduct.name,
+                categoryId = findProduct.category.id!!,
+                productNumber = findProduct.productNumber,
+                measurementId = findProduct.measurement.id!!,
+                inPrice = stockInItem?.inPrice,
+                outPrice = stockInItem?.outPrice,
+            )
+        }
+        throw ProductNotFoundException()
+    }
+
+    override fun update(id: Long, update: ProductUpdateRequest) {
+        repository.findByIdAndDeletedFalse(id)?.let { findProduct ->
+            repository.existsProductByNameAndDeletedFalseAndIdNot(update.name, id).takeIf { it }
+                ?.let {
+                    throw ProductAlreadyExistsException()
+                }
+            val category =
+                categoryRepository.findByIdAndDeletedFalse(update.categoryId) ?: throw CategoryNotFoundException()
+            val measurement =
+                measurementRepository.findByIdAndDeletedFalse(update.measurementId) ?: throw MeasurementNotFoundException()
+
+
+
+            findProduct.name = update.name
+            findProduct.category = category
+            findProduct.measurement = measurement
+            repository.save(findProduct)
+        }
+    }
+
+    override fun delete(id: Long) {
+        repository.trash(id) ?: throw ProductNotFoundException()
+    }
+
+    override fun generateUniqueCode(): Int {
+        var uniqueNumber: Int
+
+        while (true){
+            val candidate = kotlin.random.Random.nextInt(10000, Int.MAX_VALUE)
+
+            val alreadyExists = repository.existsProductByProductNumber(candidate)
+
+            if (!alreadyExists){
+                uniqueNumber = candidate
+                break
+            }
+
+        }
+        return uniqueNumber
+    }
+}
 //Product Service
 
 //Measurement Service

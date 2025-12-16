@@ -156,4 +156,19 @@ class AttachController(
     fun upload(@PathVariable productId: Long,
         @RequestParam("file") file: MultipartFile): AttachUrl =
         service.upload(productId,file)
+
+
+    @Operation(summary = "Get open api")
+    @GetMapping("/open/{photoHash}")
+    fun getAttachByHash(@PathVariable photoHash: String): AttachResponse = service.getAttachByHash(photoHash)
+
+    @Operation(summary = "Get product attaches")
+    @GetMapping("/product-attaches/{productId}")
+    fun getProductAttaches(@PathVariable productId: Long): List<AttachResponse> =
+        service.getProductAttaches(productId)
+
+    @Operation(summary = "Delete by hash")
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{photoHash}")
+    fun delete(@PathVariable photoHash: String) = service.delete(photoHash)
 }

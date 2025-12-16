@@ -97,3 +97,11 @@ class CategoryNotFoundException() : WarehouseAppException(){
 class ProductNotFoundException() : WarehouseAppException(){
     override fun errorType() = ErrorCode.PRODUCT_NOT_FOUND
 }
+
+class MeasurementAlreadyExistsException() : WarehouseAppException(){
+    override fun errorType() = ErrorCode.MEASUREMENT_ALREADY_EXISTS
+}
+
+class MeasurementNotFoundException() : WarehouseAppException(){
+    override fun errorType() = ErrorCode.MEASUREMENT_NOT_FOUND
+}

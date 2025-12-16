@@ -89,3 +89,21 @@ data class AttachUrl(
     val id: Long,
     val url: String,
 )
+
+data class MeasurementCreateDto(
+    @field:NotBlank(message = "measurement.name.required")
+    @field:Size(min = 2, max = 100, message = "measurement.name.min.max")
+    val name: String
+)
+
+data class MeasurementResponse(
+    val id: Long,
+    val name: String,
+    val createdBy: String?,
+)
+
+data class MeasurementUpdateRequest(
+    @field:NotBlank(message = "measurement.name.required")
+    @field:Size(min = 2, max = 100, message = "measurement.name.min.max")
+    val name: String,
+)

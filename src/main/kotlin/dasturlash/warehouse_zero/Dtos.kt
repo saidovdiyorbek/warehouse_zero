@@ -130,3 +130,14 @@ data class ProductUpdateRequest(
     val categoryId: Long,
     val measurementId: Long,
 )
+
+data class AttachResponse(
+    val id: Long,
+    val originName: String?,
+    val size: Long,
+    val type: String?,
+    val path: String,
+    val fullPath: String,
+    val hash: String,
+    val productId: Long
+)

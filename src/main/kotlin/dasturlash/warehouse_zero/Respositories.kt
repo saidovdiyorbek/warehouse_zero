@@ -61,3 +61,11 @@ interface CategoryRepository : BaseRepository<Category>{
 
     fun existsCategoryByNameAndDeletedFalse(name: String): Boolean?
 }
+
+interface AttachRepository : BaseRepository<Attach>{
+    fun existsByHashAndDeletedFalse(hash: String): Boolean
+}
+@Repository
+interface ProductRepository : BaseRepository<Product>{
+
+}

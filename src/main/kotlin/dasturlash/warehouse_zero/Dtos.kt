@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
+import java.math.BigDecimal
 
 data class BaseMessage(val code: Int?, val message: String? = null){
     companion object{
@@ -86,7 +87,7 @@ data class CategoryUpdateRequest(
 )
 
 data class AttachUrl(
-    val id: Long,
+    val hash: String,
     val url: String,
 )
 
@@ -106,4 +107,26 @@ data class MeasurementUpdateRequest(
     @field:NotBlank(message = "measurement.name.required")
     @field:Size(min = 2, max = 100, message = "measurement.name.min.max")
     val name: String,
+)
+
+data class ProductCreateDto(
+    val name: String,
+    val categoryId: Long,
+    val measurementId: Long,
+)
+
+data class ProductResponse(
+    val id: Long,
+    val name: String,
+    val categoryId: Long,
+    val productNumber: Int,
+    val measurementId: Long,
+    val inPrice: BigDecimal?,
+    val outPrice: BigDecimal?,
+)
+
+data class ProductUpdateRequest(
+    val name: String,
+    val categoryId: Long,
+    val measurementId: Long,
 )

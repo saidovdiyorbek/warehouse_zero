@@ -27,5 +27,7 @@ enum class ErrorCode(val code: Int, val message: String) {
     MEASUREMENT_ALREADY_EXISTS(601, "MEASUREMENT_ALREADY_EXISTS"),
     //7
     PRODUCT_NOT_IN_STOCK(700, "PRODUCT_NOT_IN_STOCK"),
+    //8
+    ATTACH_NOT_FOUND(800, "ATTACH_NOT_FOUND"),
 
 }

@@ -88,6 +88,35 @@ class CategoryController(
 }
 
 @RestController
+@RequestMapping("/api/measurements")
+class MeasurementController(
+    private val service: MeasurementService
+){
+
+    @Operation(summary = "Create measurement")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping
+    fun create(@Valid @RequestBody create: MeasurementCreateDto) = service.create(create)
+
+    @Operation(summary = "Get one by id")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @GetMapping("/{id}")
+    fun getOne(@PathVariable id: Long): MeasurementResponse = service.getOne(id)
+
+    @Operation(summary = "Update by id")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}")
+    fun update(@Valid @RequestBody update: MeasurementUpdateRequest,
+               @PathVariable id: Long) = service.update(id, update)
+
+    @Operation(summary = "Delete by id")
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    fun delete(@PathVariable id: Long) = service.delete(id)
+
+}
+
+@RestController
 @RequestMapping("/api/attaches")
 class AttachController(
     private val service: AttachService

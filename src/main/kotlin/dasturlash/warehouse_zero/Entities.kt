@@ -119,7 +119,7 @@ class Product(
     @JoinColumn(name = "category_id", nullable = false)
     var category: Category,
 
-    @Column(nullable = false, unique = true) var productNumber: String,
+    @Column(nullable = false, unique = true) var productNumber: Int,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "measurement_id", nullable = false)

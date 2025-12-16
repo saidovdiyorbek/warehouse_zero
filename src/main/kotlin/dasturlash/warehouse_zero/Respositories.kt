@@ -69,3 +69,7 @@ interface AttachRepository : BaseRepository<Attach>{
 interface ProductRepository : BaseRepository<Product>{
 
 }
+
+interface MeasurementRepository : BaseRepository<Measurement>{
+    fun existsMeasurementByNameAndDeletedFalse(measurementName: String): Boolean
+}

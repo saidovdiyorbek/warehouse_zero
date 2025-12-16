@@ -3,6 +3,7 @@ package dasturlash.warehouse_zero
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import jakarta.validation.Valid
+import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -11,7 +12,9 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.multipart.MultipartFile
 
 @RestController
 @RequestMapping("/api/auth")
@@ -82,4 +85,19 @@ class CategoryController(
     @DeleteMapping("/{id}")
     fun delete(@PathVariable id: Long) = service.delete(id)
 
+}
+
+@RestController
+@RequestMapping("/api/attaches")
+class AttachController(
+    private val service: AttachService
+){
+
+    @Operation(summary = "Upload attach")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("/upload/{productId}",
+        consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun upload(@PathVariable productId: Long,
+        @RequestParam("file") file: MultipartFile): AttachUrl =
+        service.upload(productId,file)
 }

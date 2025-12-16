@@ -105,3 +105,12 @@ class MeasurementAlreadyExistsException() : WarehouseAppException(){
 class MeasurementNotFoundException() : WarehouseAppException(){
     override fun errorType() = ErrorCode.MEASUREMENT_NOT_FOUND
 }
+
+class ProductAlreadyExistsException() : WarehouseAppException(){
+    override fun errorType() = ErrorCode.PRODUCT_ALREADY_EXISTS
+
+}
+
+class ProductNotInStockException() : WarehouseAppException(){
+    override fun errorType() = ErrorCode.PRODUCT_NOT_IN_STOCK
+}

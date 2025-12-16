@@ -64,6 +64,8 @@ interface CategoryRepository : BaseRepository<Category>{
 
 interface AttachRepository : BaseRepository<Attach>{
     fun existsByHashAndDeletedFalse(hash: String): Boolean
+    fun findAttachByHashAndDeletedFalse(hash: String): Attach?
+    fun findAllByProductIdAndDeletedFalse(productId: Long): List<Attach>
 }
 @Repository
 interface ProductRepository : BaseRepository<Product>{

@@ -1,8 +1,13 @@
 spring:
+  profiles:
+    active: local
+  servlet:
+    multipart:
+      max-file-size: 10MB
   datasource:
-    url: "jdbc:postgresql://localhost:5432/zero_warehouse"
-    username: zero
-    password: finite
+    url: "jdbc:postgresql://localhost:5433/"
+    username:
+    password:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
@@ -24,6 +29,19 @@ spring:
     change-log: classpath:/db/changelog/db.changelog-master.yaml
     user: ${spring.datasource.username}
     password: ${spring.datasource.password}
+  messages:
+    basename: error
+    encoding: UTF-8
+    fallback-to-system-locale: false
+    use-code-as-default-message: false
 jwt:
-  secret: "a2b2fa31f6d6c1e8a40509f684a9a32d"
+  secret: ""
   expiration: 86400000
+attach:
+  upload:
+    folder: attaches
+  url: http://localhost:8080/api/
+telegram:
+  bot:
+    token: ""
+    username: ""

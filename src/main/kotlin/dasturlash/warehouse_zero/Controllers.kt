@@ -172,3 +172,31 @@ class AttachController(
     @DeleteMapping("/{photoHash}")
     fun delete(@PathVariable photoHash: String) = service.delete(photoHash)
 }
+
+@RestController
+@RequestMapping("/api/employee")
+class EmployeeController(
+    private val service: EmployeeService
+){
+
+    @Operation(summary = "Create employee")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping
+    fun create(@Valid @RequestBody create: EmployeeCreateDto) = service.create(create)
+
+    @Operation(summary = "Get one by id")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @GetMapping("/{id}")
+    fun getOne(@PathVariable id: Long): EmployeeResponse = service.getOne(id)
+
+    @Operation(summary = "Update by id")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}")
+    fun update(@Valid @RequestBody update: EmployeeUpdateRequest,
+               @PathVariable id: Long) = service.update(id, update)
+
+    @Operation(summary = "Delete by id")
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    fun delete(@PathVariable id: Long) = service.delete(id)
+}

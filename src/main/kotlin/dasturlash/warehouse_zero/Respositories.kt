@@ -23,6 +23,7 @@ interface BaseRepository<T : BaseEntity> : JpaRepository<T, Long>, JpaSpecificat
     fun trashList(ids: List<Long>): List<T?>
     fun findAllNotDeleted(): List<T>
     fun findAllNotDeleted(pageable: Pageable): Page<T>
+    fun findByIdAndDeletedFalseAndStatusActive(id: Long): T?
 }
 
 class BaseRepositoryImpl<T : BaseEntity>(
@@ -44,6 +45,11 @@ class BaseRepositoryImpl<T : BaseEntity>(
 
     override fun findAllNotDeleted(pageable: Pageable): Page<T> = findAll(isNotDeletedSpecification, pageable)
 
+
+    override fun findByIdAndDeletedFalseAndStatusActive(id: Long): T? = findByIdOrNull(id)?.run {
+        if (deleted && status == Status.ACTIVE) null else this
+    }
+
 }
 
 @Repository
@@ -64,6 +70,13 @@ interface WarehouseRepository : BaseRepository<Warehouse>{
 interface EmployeeRepository : BaseRepository<Employee>{
     fun findByPhoneNumberAndDeletedFalse(phoneNumber: String): Employee?
     fun findByPhoneNumber(phoneNumber: String): Employee?
+
+    @Query("""
+        select e 
+        from Employee e
+        where e.uniqueNumber = ?1
+    """)
+    fun findByEmployeeUniqueNumber(employeeUnique: String): Employee?
 }
 
 interface CategoryRepository : BaseRepository<Category>{

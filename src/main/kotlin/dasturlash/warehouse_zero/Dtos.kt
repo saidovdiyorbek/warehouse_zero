@@ -8,6 +8,7 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import java.math.BigDecimal
+import java.time.LocalDate
 
 data class BaseMessage(val code: Int?, val message: String? = null){
     companion object{
@@ -181,4 +182,35 @@ data class EmployeeUpdateRequest(
     )
     val phoneNumber: String?,
     val warehouseId: Long?,
+)
+
+data class StockInCreateDto(
+    val warehouseId: Long,
+    val supplierId: Long,
+    val currencyId: Long,
+    val factualNumber: Long,
+)
+
+data class StockInItemDto(
+    val stockInId: Long,
+    val productId: Long,
+    val measurementCount: Int,
+    val inPrice: BigDecimal?,
+    val outPrice: BigDecimal,
+    val expireDate: LocalDate?,
+)
+
+data class SupplierCreateDto(
+    val name: String,
+    val phoneNumber: String,
+)
+
+data class SupplierResponse(
+    val name: String,
+    val phoneNumber: String,
+)
+
+data class SupplierUpdateRequest(
+    val name: String?,
+    val phoneNumber: String?,
 )

@@ -122,3 +122,10 @@ class ProductNotInStockException() : WarehouseAppException(){
 class AttachNotFoundException() : WarehouseAppException(){
     override fun errorType() = ErrorCode.ATTACH_NOT_FOUND
 }
+
+class PhoneNumberAlreadyExistsException() : WarehouseAppException(){
+    override fun errorType() = ErrorCode.PHONE_NUMBER_NOT_FOUND
+}
+class SupplierNotFoundException() : WarehouseAppException(){
+    override fun errorType() = ErrorCode.SUPPLIER_NOT_FOUND
+}

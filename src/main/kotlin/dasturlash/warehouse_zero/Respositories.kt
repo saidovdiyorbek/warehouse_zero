@@ -51,6 +51,12 @@ interface WarehouseRepository : BaseRepository<Warehouse>{
         where w.name = ?1 and w.deleted = false 
     """)
     fun existsWarehouseByName(name: String): Warehouse?
+
+    @Query("""
+        select w from Warehouse w
+        where w.id = ?1 and w.deleted = false and w.status = 'ACTIVE'
+    """)
+    fun findWarehouseByIdAndActive(id: Long): Warehouse?
 }
 
 interface EmployeeRepository : BaseRepository<Employee>{
@@ -92,4 +98,12 @@ interface StockInItemRepository : BaseRepository<StockInItem>{
         limit 1
     """)
     fun findStockInItemByProductId(productId: Long): StockInItem?
+}
+
+interface StockInRepository : BaseRepository<StockInItem>{
+
+}
+
+interface SupplierRepository : BaseRepository<Supplier>{
+    fun existsSupplierByPhoneNumber(phoneNumber: String): Boolean
 }

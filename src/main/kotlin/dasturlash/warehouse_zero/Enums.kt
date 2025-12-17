@@ -30,6 +30,8 @@ enum class ErrorCode(val code: Int, val message: String) {
     PRODUCT_NOT_IN_STOCK(700, "PRODUCT_NOT_IN_STOCK"),
     //8
     ATTACH_NOT_FOUND(800, "ATTACH_NOT_FOUND"),
-
+    //9
+    PHONE_NUMBER_NOT_FOUND(900, "PHONE_NUMBER_NOT_FOUND"),
+    SUPPLIER_NOT_FOUND(901, "SUPPLIER_NOT_FOUND"),
 
 }

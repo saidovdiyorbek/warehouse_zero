@@ -561,3 +561,79 @@ class MeasurementServiceImpl(
     }
 }
 //Measurement Service
+
+//Stock in Service
+interface StockInService{
+    fun create(create: StockInCreateDto)
+}
+
+@Service
+class StockInServiceImpl(
+    private val warehouseRepository: WarehouseRepository,
+) : StockInService{
+    override fun create(create: StockInCreateDto) {
+        warehouseRepository.findWarehouseByIdAndActive(create.warehouseId)?.let { warehouse ->
+
+        }
+    }
+}
+//Stock in Service
+
+//StockItem
+interface StockInItemService{}
+
+@Service
+class StockInItemServiceImpl() : StockInItemService{}
+//StockItem
+
+//Supplier Service
+interface SupplierService{
+    fun create(create: SupplierCreateDto)
+    fun getOne(id: Long): SupplierResponse
+    fun update(id: Long, update: SupplierUpdateRequest)
+    fun delete(id: Long)
+}
+
+@Service
+class SupplierServiceImpl(
+    private val repository: SupplierRepository,
+
+): SupplierService{
+    override fun create(create: SupplierCreateDto) {
+        repository.existsSupplierByPhoneNumber(create.phoneNumber).takeIf { it }?.let {
+            throw PhoneNumberAlreadyExistsException()
+        }
+        repository.save(Supplier(
+            create.name,
+            create.phoneNumber,
+        ))
+    }
+
+    override fun getOne(id: Long): SupplierResponse {
+        repository.findByIdAndDeletedFalse(id)?.let { supplier ->
+            return SupplierResponse(
+                supplier.name,
+                supplier.phoneNumber,
+            )
+        }
+        throw SupplierNotFoundException()
+    }
+
+    override fun update(id: Long, update: SupplierUpdateRequest) {
+        repository.findByIdAndDeletedFalse(id)?.let { supplier ->
+            update.name?.let { supplier.name = update.name }
+            update.phoneNumber?.let {
+                repository.existsSupplierByPhoneNumber(update.phoneNumber).takeIf { it }?.let {
+                    throw PhoneNumberAlreadyExistsException()
+                }
+                supplier.phoneNumber = update.phoneNumber
+                repository.save(supplier)
+            }
+        }
+    }
+
+    override fun delete(id: Long) {
+        repository.trash(id) ?: throw SupplierNotFoundException()
+    }
+}
+//Supplier Service

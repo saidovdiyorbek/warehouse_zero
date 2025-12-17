@@ -89,7 +89,7 @@ class Employee(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "warehouse_id", nullable = false)
-    var warehouse: Warehouse,
+    var warehouse: Warehouse?,
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false) var role: Role,

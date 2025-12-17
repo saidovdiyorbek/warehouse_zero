@@ -171,6 +171,12 @@ data class EmployeeResponse(
     val role: Role,
 )
 
+data class DailyInProductsResponse(
+    val name: String,
+    val sum: BigDecimal,
+    val measurementCound: Int
+)
+
 data class EmployeeUpdateRequest(
     @field:Size(min = 4, max = 50, message = "employee.firstName.min.max")
     val firstName: String?,
@@ -189,15 +195,16 @@ data class StockInCreateDto(
     val supplierId: Long,
     val currencyId: Long,
     val factualNumber: Long,
+    val items: List<StockInItemDto>,
 )
 
 data class StockInItemDto(
-    val stockInId: Long,
     val productId: Long,
     val measurementCount: Int,
-    val inPrice: BigDecimal?,
+    val inPrice: BigDecimal,
     val outPrice: BigDecimal,
     val expireDate: LocalDate?,
+    val notifyBeforeDay: Int,
 )
 
 data class SupplierCreateDto(
@@ -214,3 +221,37 @@ data class SupplierUpdateRequest(
     val name: String?,
     val phoneNumber: String?,
 )
+
+data class StockOutCreateDto(
+    val warehouseId: Long,
+    val currencyId: Long,
+    val factualNumber: Long,
+    val items: List<StockOutItemDto>,
+)
+
+data class StockOutItemDto(
+    val productId: Long,
+    val measurementCount: Int,
+    val outPrice: BigDecimal,
+
+)
+
+data class CurrencyCreateDto(
+    val name: String,
+)
+
+data class CurrencyResponse(
+    val id: Long,
+    val name: String,
+    val createdBy: String?,
+)
+
+data class CurrencyUpdateRequest(
+    val name: String,
+)
+
+interface DailyInProductProjection{
+    fun getProductName(): String
+    fun getSum(): BigDecimal
+    fun getMeasureCount(): Int
+}

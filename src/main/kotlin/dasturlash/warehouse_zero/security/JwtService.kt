@@ -78,7 +78,7 @@ class JwtAuthFilter(
 
         if (phoneNumber != null && SecurityContextHolder.getContext().authentication == null) {
             val userDetails = userDetailService.loadUserByUsername(phoneNumber)
-
+            println(userDetails.authorities)
             if (jwtService.isTokenValid(jwt)) {
                 val authToken = UsernamePasswordAuthenticationToken(
                     userDetails,

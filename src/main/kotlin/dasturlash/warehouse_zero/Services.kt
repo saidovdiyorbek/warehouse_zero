@@ -1,18 +1,23 @@
 package dasturlash.warehouse_zero
 
 import dasturlash.warehouse_zero.security.JwtService
+import dasturlash.warehouse_zero.security.SecurityUtils
 import io.jsonwebtoken.io.IOException
 import jakarta.transaction.Transactional
+import jakarta.ws.rs.ForbiddenException
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
+import java.math.BigDecimal
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.time.LocalDate
 import java.util.Calendar
+import java.util.Date
 import kotlin.io.path.Path
 import kotlin.toString
 
@@ -565,16 +570,81 @@ class MeasurementServiceImpl(
 //Stock in Service
 interface StockInService{
     fun create(create: StockInCreateDto)
+    fun getDailyInProductInformation(date: Date): List<DailyInProductsResponse>?
 }
 
 @Service
 class StockInServiceImpl(
     private val warehouseRepository: WarehouseRepository,
+    private val supplierRepository: SupplierRepository,
+    private val currencyRepository: CurrencyRepository,
+    private val repository: StockInRepository,
+    private val productRepository: ProductRepository,
+    private val stockInItemRepository: StockInItemRepository,
+    private val warehouseBalanceRepository: WarehouseProductBalanceRepository,
+    private val genHash: GenerateHash
 ) : StockInService{
+
+    @Transactional
     override fun create(create: StockInCreateDto) {
-        warehouseRepository.findWarehouseByIdAndActive(create.warehouseId)?.let { warehouse ->
+        val warehouse =
+            warehouseRepository.findWarehouseByIdAndActive(create.warehouseId) ?: throw WarehouseNotFoundException()
+        val supplier =
+            supplierRepository.findByIdAndDeletedFalse(create.supplierId) ?: throw SupplierNotFoundException()
+        val currency =
+            currencyRepository.findByIdAndDeletedFalse(create.currencyId) ?: throw CurrencyNotFoundException()
+
+        var stockIn = StockIn(
+            warehouse = warehouse,
+            supplier = supplier,
+            currency = currency,
+            factualNumber = create.factualNumber,
+            uniqueNumber = genHash.generateHash(),
+            amount = BigDecimal.ZERO
+        )
+
+        stockIn = repository.save(stockIn)
+
+        val items = create.items.map { itemR ->
+            val product = productRepository.findByIdAndDeletedFalse(itemR.productId) ?: throw ProductNotFoundException()
+            warehouseBalanceRepository.findByWarehouseIdAndProductId(warehouse.id!!, product.id!!)?.let { balance ->
+                balance.quantity += itemR.measurementCount
+                warehouseBalanceRepository.save(balance)
+            }
+
+            warehouseBalanceRepository.save(WarehouseProductsBalance(
+                warehouse,
+                product,
+                itemR.measurementCount,
+            ))
+            StockInItem(
+                stockIn = stockIn,
+                product = product,
+                measurementCount = itemR.measurementCount,
+                inPrice = itemR.inPrice,
+                outPrice = itemR.outPrice,
+                expireDate = itemR.expireDate?.let { itemR.expireDate },
+                notifyBeforeDay = itemR.notifyBeforeDay,
+            )
 
         }
+        stockInItemRepository.saveAll(items)
+
+        val totalAmount = items.sumOf { it.inPrice * it.measurementCount.toBigDecimal() }
+        stockIn.amount = totalAmount
+        stockIn.processingStatus = StockInOutProcessingStatus.COMPLETED
+        repository.save(stockIn)
+    }
+
+    override fun getDailyInProductInformation(date: Date): List<DailyInProductsResponse>? {
+       val products =  repository.findDailyInProductsSum(date)?.map { product ->
+            DailyInProductsResponse(
+                product.getProductName(),
+                product.getSum(),
+                product.getMeasureCount()
+            )
+        }
+        return products
     }
 }
 //Stock in Service
@@ -637,3 +707,123 @@ class SupplierServiceImpl(
     }
 }
 //Supplier Service
+
+//StockOut
+interface StockOutService{
+    fun create(create: StockOutCreateDto)
+}
+
+@Service
+class StockOutServiceImpl(
+    private val warehouseRepository: WarehouseRepository,
+    private val currencyRepository: CurrencyRepository,
+    private val employeeRepository: EmployeeRepository,
+    private val repository: StockOutRepository,
+    private val productRepository: ProductRepository,
+    private val stockOutItemRepository: StockOutItemRepository,
+    private val genHash: GenerateHash,
+    private val securityUtils: SecurityUtils,
+    private val warehouseBalanceRepository: WarehouseProductBalanceRepository
+) : StockOutService{
+
+    @Transactional
+    override fun create(create: StockOutCreateDto) {
+        val warehouse =
+            warehouseRepository.findWarehouseByIdAndActive(create.warehouseId) ?: throw WarehouseNotFoundException()
+        val employee =
+            employeeRepository.findByIdAndDeletedFalse(securityUtils.getCurrentUserId()) ?: throw EmployeeNotFoundException()
+        val currency =
+            currencyRepository.findByIdAndDeletedFalse(create.currencyId) ?: throw CurrencyNotFoundException()
+
+        if (employee.warehouse?.id != create.warehouseId) {
+            throw ForbiddenException()
+        }
+
+        var stockOut = StockOut(
+            warehouse = warehouse,
+            employee = employee,
+            currency = currency,
+            factualNumber = create.factualNumber,
+            uniqueNumber = genHash.generateHash(),
+            amount = BigDecimal.ZERO,
+        )
+
+        stockOut = repository.save(stockOut)
+
+        val items = create.items.map { itemR ->
+            val product = productRepository.findByIdAndDeletedFalse(itemR.productId) ?: throw ProductNotFoundException()
+            warehouseBalanceRepository.findByWarehouseIdAndProductId(warehouse.id!!, product.id!!)?.let { balance ->
+                if (balance.quantity > itemR.measurementCount) {
+                    balance.quantity -= itemR.measurementCount
+                    warehouseBalanceRepository.save(balance)
+                }
+                throw ProductNotFoundException()
+            }
+            StockOutItem(
+                stockOut = stockOut,
+                product = product,
+                measurementCount = itemR.measurementCount,
+                uniqueNumber = genHash.generateHash(),
+                amount = itemR.outPrice.multiply( itemR.measurementCount.toBigDecimal()),
+            )
+        }
+        stockOutItemRepository.saveAll(items)
+
+        val totalAmount = items.sumOf { it.amount }
+        stockOut.amount = totalAmount
+        stockOut.processingStatus = StockInOutProcessingStatus.COMPLETED
+        repository.save(stockOut)
+    }
+
+}
+//StockOut
+
+//Currency
+interface CurrencyService{
+    fun create(create: CurrencyCreateDto)
+    fun getOne(id: Long): CurrencyResponse
+    fun update(id: Long, update: CurrencyUpdateRequest)
+    fun delete(id: Long)
+}
+
+@Service
+class CurrencyServiceImpl(
+    private val repository: CurrencyRepository,
+) : CurrencyService{
+    override fun create(create: CurrencyCreateDto) {
+        repository.existsCurrencyByNameAndDeletedFalse(create.name).takeIf { it }?.let {
+            throw CurrencyAlreadyExistsException()
+        }
+        repository.save(Currency(
+            create.name,
+        ))
+    }
+
+    override fun getOne(id: Long): CurrencyResponse {
+        repository.findByIdAndDeletedFalse(id)?.let { currency ->
+            return CurrencyResponse(
+                currency.id!!,
+                currency.name,
+                currency.createdBy
+            )
+        }
+        throw CurrencyNotFoundException()
+    }
+
+    override fun update(id: Long, update: CurrencyUpdateRequest) {
+        repository.existsCurrencyByNameAndDeletedFalseAndIdNot(update.name, id).takeIf { it }?.let {
+            throw CurrencyAlreadyExistsException()
+        }
+
+        repository.findByIdAndDeletedFalse(id)?.let { currency ->
+            currency.name = update.name
+            repository.save(currency)
+        }
+        throw CurrencyNotFoundException()
+    }
+
+    override fun delete(id: Long) {
+        repository.trash(id) ?: throw CurrencyNotFoundException()
+    }
+}
+//Currency

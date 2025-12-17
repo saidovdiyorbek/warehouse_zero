@@ -1,7 +1,6 @@
 package dasturlash.warehouse_zero
 
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import jakarta.validation.Valid
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
+import java.util.Date
 
 @RestController
 @RequestMapping("/api/auth")
@@ -31,7 +31,6 @@ class AuthController(
 
 @RestController
 @RequestMapping("/api/warehouses")
-@SecurityRequirement(name = "Bearer Authentication")
 class WarehouseController(
     private val service: WarehouseService
 ) {
@@ -42,7 +41,7 @@ class WarehouseController(
     fun create(@Valid @RequestBody create: CreateWarehouseDto) = service.create(create)
 
     @Operation(summary = "Get one by id")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     fun getOne(@PathVariable id: Long): WarehouseResponse = service.getOne(id)
 
@@ -233,14 +232,56 @@ class SupplierController(
 class StockInController(
     private val service: StockInService,
 ){
-    @Operation(summary = "Create employee")
+    @Operation(summary = "Create stock-in")
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     fun create(@Valid @RequestBody create: StockInCreateDto) = service.create(create)
 
-   /* @Operation(summary = "Get one by id")
+    @Operation(summary = "Get daily in product information")
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/get-daily-in-product-information")
+    fun getDailyInProductInformation(@RequestParam date: Date): List<DailyInProductsResponse>? = service.getDailyInProductInformation(date)
+
+
+
+}
+
+@RestController
+@RequestMapping("/api/stock-out")
+class StockOutController(
+    private val service: StockOutService,
+){
+
+    @Operation(summary = "Create stock-out")
+    @PreAuthorize("hasRole('EMPLOYEE')")
+    @PostMapping
+    fun create(@Valid @RequestBody create: StockOutCreateDto) = service.create(create)
+
+}
+
+@RestController
+@RequestMapping("/api/currencies")
+class CurrencyController(
+    private val service: CurrencyService
+){
+    @Operation(summary = "Create currency")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping
+    fun create(@Valid @RequestBody create: CurrencyCreateDto) = service.create(create)
+
+    @Operation(summary = "Get one by id")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("/{id}")
-    fun getOne(@PathVariable id: Long): EmployeeResponse = service.getOne(id)*/
+    fun getOne(@PathVariable id: Long): CurrencyResponse = service.getOne(id)
 
+    @Operation(summary = "Update by id")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}")
+    fun update(@Valid @RequestBody update: CurrencyUpdateRequest,
+               @PathVariable id: Long) = service.update(id, update)
+
+    @Operation(summary = "Delete by id")
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
+    fun delete(@PathVariable id: Long) = service.delete(id)
 }

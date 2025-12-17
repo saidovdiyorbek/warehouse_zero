@@ -129,3 +129,18 @@ class PhoneNumberAlreadyExistsException() : WarehouseAppException(){
 class SupplierNotFoundException() : WarehouseAppException(){
     override fun errorType() = ErrorCode.SUPPLIER_NOT_FOUND
 }
+
+class CurrencyNotFoundException() : WarehouseAppException(){
+    override fun errorType() = ErrorCode.CURRENCY_NOT_FOUND
+
+}
+
+class CurrencyAlreadyExistsException() : WarehouseAppException(){
+    override fun errorType() = ErrorCode.CURRENCY_ALREADY_EXISTS
+
+}
+
+class EmployeeNotAuthenticatedException() : WarehouseAppException(){
+    override fun errorType() = ErrorCode.EMPLOYEE_NOT_AUTHENTICATED
+
+}

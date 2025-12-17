@@ -17,12 +17,14 @@ import jakarta.persistence.Temporal
 import jakarta.persistence.TemporalType
 import jakarta.persistence.UniqueConstraint
 import org.hibernate.annotations.ColumnDefault
+import org.hibernate.annotations.CreationTimestamp
 import org.springframework.data.annotation.CreatedBy
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedBy
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.util.Date
 
 
@@ -132,7 +134,8 @@ class Product(
 @Entity
 @Table(name = "stock_in")
 class StockIn(
-    @Column(nullable = false) @Temporal(TemporalType.TIMESTAMP) var date: Date,
+    @CreationTimestamp
+    @Column(nullable = false) @Temporal(TemporalType.TIMESTAMP) var date: Date? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "warehouse_id", nullable = false)
@@ -147,8 +150,9 @@ class StockIn(
     var currency: Currency,
 
     @Column(nullable = false)var factualNumber: Long,
-    @Column(nullable = false, unique = true)var uniqueNumber: Long,
-    @Column(nullable = false) var amount: BigDecimal
+    @Column(nullable = false, unique = true)var uniqueNumber: String,
+    @Column(nullable = false) var amount: BigDecimal,
+    @Enumerated(EnumType.STRING)var processingStatus: StockInOutProcessingStatus = StockInOutProcessingStatus.DRAFT,
 ) : BaseEntity()
 
 //Stock in item
@@ -166,14 +170,16 @@ class StockInItem(
     @Column(nullable = false)var measurementCount: Int,
     @Column(nullable = false)var inPrice: BigDecimal,
     @Column(nullable = false)var outPrice: BigDecimal,
-    var expireDate: Date? = null,
+    var expireDate: LocalDate? = null,
+    var notifyBeforeDay: Int
 ) : BaseEntity()
 
 //StockOut
 @Entity
 @Table(name = "stock_out")
 class StockOut(
-    @Column(nullable = false) @Temporal(TemporalType.TIMESTAMP) var date: Date,
+    @CreationTimestamp
+    @Column(nullable = false) @Temporal(TemporalType.TIMESTAMP) var date: Date? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "warehouse_id", nullable = false)
@@ -187,9 +193,10 @@ class StockOut(
     @JoinColumn(name = "currency_id", nullable = false)
     var currency: Currency,
 
-    @Column(nullable = false)var factualNumber: Long,
-    @Column(nullable = false, unique = true)var uniqueNumber: Long,
-    @Column(nullable = false)var amount: BigDecimal,
+    @Column(nullable = false) var factualNumber: Long,
+    @Column(nullable = false, unique = true) var uniqueNumber: String,
+    @Column(nullable = false) var amount: BigDecimal,
+    @Enumerated(EnumType.STRING)var processingStatus: StockInOutProcessingStatus = StockInOutProcessingStatus.DRAFT,
 ) : BaseEntity()
 
 //Stock out item
@@ -206,8 +213,7 @@ class StockOutItem(
     var product: Product,
 
     @Column(nullable = false)var measurementCount: Int,
-    @Column(nullable = false)var factualNumber: Long,
-    @Column(nullable = false, unique = true)var uniqueNumber: Long,
+    @Column(nullable = false, unique = true)var uniqueNumber: String,
     @Column(nullable = false)var amount: BigDecimal,
 ) : BaseEntity()
 

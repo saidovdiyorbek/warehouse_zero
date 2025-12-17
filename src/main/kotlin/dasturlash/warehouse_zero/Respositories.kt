@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.support.SimpleJpaRepository
 import org.springframework.data.repository.NoRepositoryBean
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
+import java.util.Date
 
 @NoRepositoryBean
 interface BaseRepository<T : BaseEntity> : JpaRepository<T, Long>, JpaSpecificationExecutor<T> {
@@ -98,12 +99,44 @@ interface StockInItemRepository : BaseRepository<StockInItem>{
         limit 1
     """)
     fun findStockInItemByProductId(productId: Long): StockInItem?
+
+    @Query("""
+        select count(p.name)
+        from StockInItem sii 
+        join Product p on sii.product.id = p.id
+        where sii.expireDate = ?1
+    """)
+    fun findAllExpiredProducts(date: Date): Int
 }
 
-interface StockInRepository : BaseRepository<StockInItem>{
-
+interface StockInRepository : BaseRepository<StockIn>{
+    @Query("""select 
+        p.name, sii.outPrice productName,
+        (sii.outPrice * sii.measurementCount) as sum,
+        sii.measurementCount measureCount
+        from StockIn si
+        join StockInItem sii on si.id = sii.stockIn.id
+        join Product p on sii.product.id = p.id
+        where cast(si.date as date) = ?1
+        group by sii.id, p.name, sii.measurementCount""")
+    fun findDailyInProductsSum(date: Date): List<DailyInProductProjection>?
 }
 
 interface SupplierRepository : BaseRepository<Supplier>{
     fun existsSupplierByPhoneNumber(phoneNumber: String): Boolean
+}
+
+interface CurrencyRepository : BaseRepository<Currency>{
+    fun existsCurrencyByNameAndDeletedFalse(name: String): Boolean
+    fun existsCurrencyByNameAndDeletedFalseAndIdNot(name: String, id: Long): Boolean
+}
+
+interface StockOutRepository : BaseRepository<StockOut>{}
+
+interface StockOutItemRepository : BaseRepository<StockOutItem>{}
+
+@Repository
+interface WarehouseProductBalanceRepository : BaseRepository<WarehouseProductsBalance>{
+
+    fun findByWarehouseIdAndProductId(warehouseId: Long, productId: Long): WarehouseProductsBalance?
 }

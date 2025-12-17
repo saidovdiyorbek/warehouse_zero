@@ -4,6 +4,10 @@ enum class Status {
     ACTIVE, INACTIVE
 }
 
+enum class StockInOutProcessingStatus{
+    DRAFT, COMPLETED
+}
+
 enum class Role {
     ROLE_EMPLOYEE, ROLE_ADMIN
 }
@@ -15,6 +19,7 @@ enum class ErrorCode(val code: Int, val message: String) {
     //2
     EMPLOYEE_NOT_FOUND(200, "EMPLOYEE_NOT_FOUND"),
     EMPLOYEE_ALREADY_EXISTS(201, "EMPLOYEE_ALREADY_EXISTS"),
+    EMPLOYEE_NOT_AUTHENTICATED(202, "EMPLOYEE_NOT_AUTHENTICATED"),
     //3
     INVALID_PASSWORD(300, "INVALID_PASSWORD"),
     //4
@@ -33,5 +38,8 @@ enum class ErrorCode(val code: Int, val message: String) {
     //9
     PHONE_NUMBER_NOT_FOUND(900, "PHONE_NUMBER_NOT_FOUND"),
     SUPPLIER_NOT_FOUND(901, "SUPPLIER_NOT_FOUND"),
+    //10
+    CURRENCY_NOT_FOUND(1000, "CURRENCY_NOT_FOUND"),
+    CURRENCY_ALREADY_EXISTS(1001, "CURRENCY_ALREADY_EXISTS"),
 
 }

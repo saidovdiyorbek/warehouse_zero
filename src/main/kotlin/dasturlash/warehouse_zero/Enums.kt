@@ -14,6 +14,7 @@ enum class ErrorCode(val code: Int, val message: String) {
     WAREHOUSE_NOT_FOUND(101, "WAREHOUSE_NOT_FOUND"),
     //2
     EMPLOYEE_NOT_FOUND(200, "EMPLOYEE_NOT_FOUND"),
+    EMPLOYEE_ALREADY_EXISTS(201, "EMPLOYEE_ALREADY_EXISTS"),
     //3
     INVALID_PASSWORD(300, "INVALID_PASSWORD"),
     //4
@@ -29,5 +30,6 @@ enum class ErrorCode(val code: Int, val message: String) {
     PRODUCT_NOT_IN_STOCK(700, "PRODUCT_NOT_IN_STOCK"),
     //8
     ATTACH_NOT_FOUND(800, "ATTACH_NOT_FOUND"),
+
 
 }

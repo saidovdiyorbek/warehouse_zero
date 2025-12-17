@@ -87,6 +87,10 @@ class CustomUserService(
 //Employee Service
 interface EmployeeService {
     fun login(request: LoginRequest): JwtResponse
+    fun create(create: EmployeeCreateDto)
+    fun getOne(id: Long): EmployeeResponse
+    fun update(id: Long, update: EmployeeUpdateRequest)
+    fun delete(id: Long)
 }
 
 @Service
@@ -94,6 +98,8 @@ class EmployeeServiceImpl(
     private val repository: EmployeeRepository,
     private val passwordEncoder: PasswordEncoder,
     private val jwtService: JwtService,
+    private val genHash: GenerateHash,
+    private val wareRepository: WarehouseRepository,
 ) : EmployeeService {
     override fun login(request: LoginRequest): JwtResponse {
        val user = repository.findByPhoneNumberAndDeletedFalse(request.phoneNumber)
@@ -105,6 +111,75 @@ class EmployeeServiceImpl(
        val token = jwtService.generateToken(user.phoneNumber, user.role.name)
 
        return JwtResponse(token)
+    }
+
+    override fun create(create: EmployeeCreateDto) {
+        repository.findByPhoneNumber(create.phoneNumber)?.let {
+            throw EmployeeAlreadyExistsException()
+        }
+        create.warehouseId?.let {
+            wareRepository.findByIdAndDeletedFalse(create.warehouseId)?.let { warehouse ->
+                repository.save(Employee(
+                    create.firstName,
+                    create.lastName,
+                    create.phoneNumber,
+                    genHash.generateHash(),
+                    passwordEncoder.encode(create.password),
+                    warehouse,
+                    Role.ROLE_EMPLOYEE
+                ))
+                return
+            }
+            throw WarehouseNotFoundException()
+        }
+        repository.save(Employee(
+            create.firstName,
+            create.lastName,
+            create.phoneNumber,
+            genHash.generateHash(),
+            passwordEncoder.encode(create.password),
+            null,
+            Role.ROLE_EMPLOYEE
+        ))
+
+    }
+
+    override fun getOne(id: Long): EmployeeResponse {
+        repository.findByIdAndDeletedFalse(id)?.let { emp ->
+            return EmployeeResponse(
+                emp.id!!,
+                emp.firstName,
+                emp.lastName,
+                emp.phoneNumber,
+                emp.warehouse?.id,
+                emp.role
+            )
+        }
+        throw EmployeeNotFoundException()
+    }
+
+    override fun update(id: Long, update: EmployeeUpdateRequest) {
+        repository.findByIdAndDeletedFalse(id)?.let { emp ->
+            update.run {
+                update.firstName?.let { emp.firstName = firstName!! }
+                update.lastName?.let { emp.lastName = lastName!! }
+                update.phoneNumber?.let {
+                    repository.findByPhoneNumber(update.phoneNumber)?.let {
+                        throw EmployeeAlreadyExistsException()
+                    }
+                    emp.phoneNumber = phoneNumber!! }
+                update.warehouseId?.let {
+                    wareRepository.findByIdAndDeletedFalse(it)?.let {ware -> emp.warehouse = ware}
+                    throw WarehouseNotFoundException()
+                }
+            }
+            repository.save(emp)
+            return
+        }
+    }
+
+    override fun delete(id: Long) {
+        repository.trash(id) ?: throw EmployeeNotFoundException()
     }
 }
 //Employee Service
@@ -174,7 +249,6 @@ interface AttachService {
     fun generateDataBaseFolder(): String
     fun getExtension(fileName: String?): String
     fun createAttachEntity(file: MultipartFile, hash: String, extension: String, pathFolder: String, product: Product, fullPath: String): Attach
-    fun generateHash(): String
     fun openUrl(hash: String): String
     fun isExist(hash: String): Boolean
     fun saveAttach(file: MultipartFile, pathFolder: String, hash: String, extension: String): String
@@ -190,7 +264,8 @@ class AttachServiceImpl(
     @Value("\${attach.url}")private val attachUrl: String,
 
     private val productRepository: ProductRepository,
-    private val repository: AttachRepository
+    private val repository: AttachRepository,
+    private val genHash: GenerateHash
 ) : AttachService {
 
     @Transactional
@@ -200,7 +275,7 @@ class AttachServiceImpl(
 
         val pathFolder: String = generateDataBaseFolder()
         val extension: String = getExtension(file.originalFilename)
-        val hash: String = generateHash()
+        val hash: String = genHash.generateHash()
         val fullFilePath = saveAttach(file, pathFolder, hash, extension)
 
         val attach = createAttachEntity(file, hash, extension, pathFolder, findProduct!!, fullFilePath)
@@ -240,14 +315,6 @@ class AttachServiceImpl(
         ))
 
         return attach
-    }
-
-    override fun generateHash(): String {
-        val charPool : List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
-        val randomString =  (1..10)
-            .map {i -> kotlin.random.Random.nextInt(0, charPool.size).let { charPool[it] }}
-            .joinToString("")
-        return randomString
     }
 
     override fun openUrl(hash: String): String {

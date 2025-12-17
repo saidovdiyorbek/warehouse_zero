@@ -200,6 +200,12 @@ class EmployeeController(
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     fun delete(@PathVariable id: Long) = service.delete(id)
+
+
+    @Operation(summary = "Update employee by hash")
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/update-status/{hash}")
+    fun updateStatus(@PathVariable hash: String) = service.updateStatus(hash)
 }
 
 @RestController

@@ -1,6 +1,7 @@
 package dasturlash.warehouse_zero
 
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 import org.springframework.security.core.GrantedAuthority
@@ -140,4 +141,44 @@ data class AttachResponse(
     val fullPath: String,
     val hash: String,
     val productId: Long
+)
+
+data class EmployeeCreateDto(
+    @field:NotBlank(message = "employee.firstName.required")
+    @field:Size(min = 4, max = 50, message = "employee.lastName.min.max")
+    val firstName: String,
+    @field:NotBlank(message = "employee.lastName.required")
+    @field:Size(min = 4, max = 50, message = "employee.lastName.min.max")
+    val lastName: String,
+    @field:Pattern(
+        regexp = "^\\+998(90|91|93|94|95|97|98|99|33|50|88)\\d{7}$",
+        message = "phone.number.regex"
+    )
+    val phoneNumber: String,
+    @field:NotBlank(message = "employee.password.required")
+    @field:Size(min = 6, max = 30, message = "employee.password.min.max")
+    val password: String,
+    val warehouseId: Long?,
+)
+
+data class EmployeeResponse(
+    val id: Long,
+    val firstName: String,
+    val lastName: String,
+    val phoneNumber: String,
+    val warehouseId: Long?,
+    val role: Role,
+)
+
+data class EmployeeUpdateRequest(
+    @field:Size(min = 4, max = 50, message = "employee.firstName.min.max")
+    val firstName: String?,
+    @field:Size(min = 4, max = 50, message = "employee.lastName.min.max")
+    val lastName: String?,
+    @field:Pattern(
+        regexp = "^\\+998(90|91|93|94|95|97|98|99|33|50|88)\\d{7}$",
+        message = "phone.number.regex"
+    )
+    val phoneNumber: String?,
+    val warehouseId: Long?,
 )

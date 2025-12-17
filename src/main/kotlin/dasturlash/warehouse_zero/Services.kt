@@ -96,6 +96,7 @@ interface EmployeeService {
     fun getOne(id: Long): EmployeeResponse
     fun update(id: Long, update: EmployeeUpdateRequest)
     fun delete(id: Long)
+    fun updateStatus(hash: String)
 }
 
 @Service
@@ -185,6 +186,12 @@ class EmployeeServiceImpl(
 
     override fun delete(id: Long) {
         repository.trash(id) ?: throw EmployeeNotFoundException()
+    }
+
+    override fun updateStatus(hash: String) {
+        repository.findByEmployeeUniqueNumber(hash)?.let { emp ->
+
+        }
     }
 }
 //Employee Service
@@ -606,7 +613,7 @@ class StockInServiceImpl(
         stockIn = repository.save(stockIn)
 
         val items = create.items.map { itemR ->
-            val product = productRepository.findByIdAndDeletedFalse(itemR.productId) ?: throw ProductNotFoundException()
+            val product = productRepository.findByIdAndDeletedFalseAndStatusActive(itemR.productId) ?: throw ProductNotFoundException()
             warehouseBalanceRepository.findByWarehouseIdAndProductId(warehouse.id!!, product.id!!)?.let { balance ->
                 balance.quantity += itemR.measurementCount
                 warehouseBalanceRepository.save(balance)
@@ -649,12 +656,6 @@ class StockInServiceImpl(
 }
 //Stock in Service
 
-//StockItem
-interface StockInItemService{}
-
-@Service
-class StockInItemServiceImpl() : StockInItemService{}
-//StockItem
 
 //Supplier Service
 interface SupplierService{
@@ -751,7 +752,7 @@ class StockOutServiceImpl(
         stockOut = repository.save(stockOut)
 
         val items = create.items.map { itemR ->
-            val product = productRepository.findByIdAndDeletedFalse(itemR.productId) ?: throw ProductNotFoundException()
+            val product = productRepository.findByIdAndDeletedFalseAndStatusActive(itemR.productId) ?: throw ProductNotFoundException()
             warehouseBalanceRepository.findByWarehouseIdAndProductId(warehouse.id!!, product.id!!)?.let { balance ->
                 if (balance.quantity > itemR.measurementCount) {
                     balance.quantity -= itemR.measurementCount

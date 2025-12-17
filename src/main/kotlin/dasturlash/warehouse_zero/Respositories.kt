@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.support.SimpleJpaRepository
 import org.springframework.data.repository.NoRepositoryBean
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
+import java.time.LocalDate
 import java.util.Date
 
 @NoRepositoryBean
@@ -119,7 +120,7 @@ interface StockInRepository : BaseRepository<StockIn>{
         join Product p on sii.product.id = p.id
         where cast(si.date as date) = ?1
         group by sii.id, p.name, sii.measurementCount""")
-    fun findDailyInProductsSum(date: Date): List<DailyInProductProjection>?
+    fun findDailyInProductsSum(date: LocalDate): List<DailyInProductProjection>?
 }
 
 interface SupplierRepository : BaseRepository<Supplier>{

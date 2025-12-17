@@ -570,7 +570,7 @@ class MeasurementServiceImpl(
 //Stock in Service
 interface StockInService{
     fun create(create: StockInCreateDto)
-    fun getDailyInProductInformation(date: Date): List<DailyInProductsResponse>?
+    fun getDailyInProductInformation(date: LocalDate): List<DailyInProductsResponse>?
 }
 
 @Service
@@ -636,7 +636,7 @@ class StockInServiceImpl(
         repository.save(stockIn)
     }
 
-    override fun getDailyInProductInformation(date: Date): List<DailyInProductsResponse>? {
+    override fun getDailyInProductInformation(date: LocalDate): List<DailyInProductsResponse>? {
        val products =  repository.findDailyInProductsSum(date)?.map { product ->
             DailyInProductsResponse(
                 product.getProductName(),
